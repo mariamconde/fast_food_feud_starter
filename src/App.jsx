@@ -1,7 +1,12 @@
-import * as React from "react"
+import * as React from "react";
 // IMPORT ANY NEEDED COMPONENTS HERE
-import { createDataSet } from "./data/dataset"
-import "./App.css"
+import { createDataSet } from "./data/dataset";
+import "./App.css";
+import Chip from "./components/Chip/Chip";
+import { useState } from "react";
+import NutritionalLabel from "./components/NutritionalLabel/NutritionalLabel";
+import Header from "./components/Header/Header";
+import Instructions from "./components/Instructions/Instructions";
 
 // don't move this!
 export const appInfo = {
@@ -16,42 +21,129 @@ export const appInfo = {
     noSelectedItem: `Almost there! Choose a menu item and you'll have the fast food facts right at your fingertips!`,
     allSelected: `Great choice! Amazing what a little knowledge can do!`,
   },
-}
+};
 // or this!
-const { data, categories, restaurants } = createDataSet()
+const { data, categories, restaurants } = createDataSet();
 
 export function App() {
+  const restaurantSelect = false;
+  const categorySelect = false;
+  const menuSelect = false;
+  const [menu_item_state, setMenuItem] = useState("");
+  const [category_state, setCategory] = useState("");
+  const [restaurant_state, setRestaurant] = useState("");
+  
+  const restaurantUnselected = false;
+  const categoryUnselected = false;
+  const menuUnselected = false;
+
+  let currentInstruction = () => {
+    let instruction = appInfo.instructions.start
+
+    if (category_state != "" && restaurant_state == ""){
+      instruction = appInfo.instructions.onlyCategory
+    }
+    else if (restaurant_state != "" && category_state == ""){
+      instruction = appInfo.instructions.onlyRestaurant
+    }
+    else if (restaurant_state != "" && category_state != "" && menuUnselected == null){
+      instruction = appInfo.instructions.noSelectedItem
+    }
+    else if (restaurant_state != "" && category_state != "" && menuUnselected != null){
+      instruction = appInfo.instructions.allSelected
+    }
+    return instruction
+  }
+
+  const currentMenuItems = data.filter((element) => {
+    return (
+      element.food_category == category_state &&
+      element.restaurant == restaurant_state
+    );
+  });
+  //console.log(currentMenuItems)
+
   return (
     <main className="App">
       {/* CATEGORIES COLUMN */}
       <div className="CategoriesColumn col">
         <div className="categories options">
           <h2 className="title">Categories</h2>
-          {/* YOUR CODE HERE */}
+          {categories.map((category) => (
+            <Chip
+              label={category}
+              key={category}
+              isActive={category_state == category}
+              onClick={() => setCategory(category)}
+               xOnClick ={() =>{
+               setTimeout(() => { setCategory(null); }, 5);
+              }}
+            />
+          ))}
         </div>
       </div>
 
       {/* MAIN COLUMN */}
       <div className="container">
         {/* HEADER GOES HERE */}
+        <Header
+          title={appInfo.title}
+          tagline={appInfo.tagline}
+          description={appInfo.description}
+          dataSource={appInfo.dataSource}
+        />
 
         {/* RESTAURANTS ROW */}
         <div className="RestaurantsRow">
           <h2 className="title">Restaurants</h2>
-          <div className="restaurants options">{/* YOUR CODE HERE */}</div>
+          <div className="restaurants options">
+        
+            {restaurants.map((restaurant) => (
+              <Chip
+                key={restaurant}
+                label={restaurant}
+                isActive={restaurant_state == restaurant}
+                onClick={() => setRestaurant(restaurant)}
+                xOnClick ={() =>{
+                  setTimeout(() => { setRestaurant(null); }, 5);
+                 }}
+                 
+              />
+            ))}
+          </div>
         </div>
 
         {/* INSTRUCTIONS GO HERE */}
+        <Instructions instructions={currentInstruction()} />
+
+        
 
         {/* MENU DISPLAY */}
         <div className="MenuDisplay display">
           <div className="MenuItemButtons menu-items">
             <h2 className="title">Menu Items</h2>
-            {/* YOUR CODE HERE */}
+            {currentMenuItems.map((item) => {
+              return (
+                <Chip
+                  label={item.item_name}
+                  isActive={menu_item_state == item}
+                  key={item.item_name}
+                  onClick={() => setMenuItem(item)}
+                  xOnClick ={() =>{
+                    setTimeout(() => { setMenuItem(null); }, 5);
+                   }}
+                  
+                />
+              );
+            })}
           </div>
 
           {/* NUTRITION FACTS */}
-          <div className="NutritionFacts nutrition-facts">{/* YOUR CODE HERE */}</div>
+          <div className="NutritionFacts nutrition-facts">
+            {menu_item_state != null ? (
+              <NutritionalLabel item={menu_item_state} />
+            ) : null}
+          </div>
         </div>
 
         <div className="data-sources">
@@ -59,7 +151,7 @@ export function App() {
         </div>
       </div>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;
